@@ -1,7 +1,7 @@
 import piece
 import tables
 
-let ICONS = {
+let icons = {
     "P0": "♟ ",
     "N0": "♞ ",
     "B0": "♝ ",
@@ -27,18 +27,18 @@ proc `[]=`*(m: var Board, x, y: int, z: m.T) {.inline.} =
 
 type Move = array[2, int]
 
-proc board_create*(): Board[8, 8, Piece] =
+proc boardCreate*(): Board[8, 8, Piece] =
     var board: Board[8, 8, Piece]
 
     for i in 0 .. 1:
-        board[2, i*7] = Piece(color: bool(i), name: 'B', reach_factor: 0.08)
-        board[1, i*7] = Piece(color: bool(i), name: 'N', reach_factor: 0.10)
-        board[3, i*7] = Piece(color: bool(i), name: 'Q', reach_factor: 0.03)
-        board[0, i*7] = Piece(color: bool(i), name: 'R', reach_factor: 0.08)
-        board[4, i*7] = Piece(color: bool(i), name: 'K', reach_factor: 0.08)
-        board[5, i*7] = Piece(color: bool(i), name: 'B', reach_factor: 0.08)
-        board[6, i*7] = Piece(color: bool(i), name: 'N', reach_factor: 0.08)
-        board[7, i*7] = Piece(color: bool(i), name: 'R', reach_factor: 0.08)
+        board[2, i*7] = Piece(color: bool(i), name: 'B', reachFactor: 0.08)
+        board[1, i*7] = Piece(color: bool(i), name: 'N', reachFactor: 0.10)
+        board[3, i*7] = Piece(color: bool(i), name: 'Q', reachFactor: 0.03)
+        board[0, i*7] = Piece(color: bool(i), name: 'R', reachFactor: 0.08)
+        board[4, i*7] = Piece(color: bool(i), name: 'K', reachFactor: 0.08)
+        board[5, i*7] = Piece(color: bool(i), name: 'B', reachFactor: 0.08)
+        board[6, i*7] = Piece(color: bool(i), name: 'N', reachFactor: 0.08)
+        board[7, i*7] = Piece(color: bool(i), name: 'R', reachFactor: 0.08)
 
         for j in 0 ..< 8:
             board[j, 1 + i*5] = Piece(color: bool(i), name: 'P')
@@ -53,16 +53,16 @@ proc draw*(board: Board): string =
             if p.name == '\0':
                 result &= "  "
             else:
-                result &= ICONS[p.toString]
+                result &= icons[p.toString]
         result &= "\n"
-    result &= "   A B C D E F G H\n"
+    result &= "  A B C D E F G H\n"
 
 proc toString(board: Board): string = 
     for x in 0 ..< board.width:
         for y in 0 ..< board.height:
             result &= board[x, y].toString()
 
-proc move_piece*(board: var Board, a: Move, b: Move) = 
+proc movePiece*(board: var Board, a: Move, b: Move) = 
     var p0: Piece = board[a[0], a[1]]
     var p1: Piece = board[b[0], b[1]]
     p0.moved = true
@@ -70,7 +70,7 @@ proc move_piece*(board: var Board, a: Move, b: Move) =
     p1.name = '\0'
     board[a[0], a[1]] = p1
 
-proc notpawn_get_moves(board: Board, x: int, y: int, color: bool, dx: array, dy: array, dlen: int, len: int): seq =
+proc notPawnGetMoves(board: Board, x: int, y: int, color: bool, dx: array, dy: array, dlen: int, len: int): seq =
     var moves = newSeq[Move]()
 
     for i in 0 ..< dlen:
@@ -89,7 +89,7 @@ proc notpawn_get_moves(board: Board, x: int, y: int, color: bool, dx: array, dy:
             if not piece.isEmpty(): break
     return moves
     
-proc get_moves*(board: Board, piece: var Piece, x: int, y: int): seq =
+proc getMoves*(board: Board, piece: var Piece, x: int, y: int): seq =
         var moves = newSeq[Move]()
 
         case piece.name
@@ -109,31 +109,32 @@ proc get_moves*(board: Board, piece: var Piece, x: int, y: int): seq =
                     moves.add([x, 4])
 
             if 0 < x:
-                let tile_l = board[x - 1, y1]
-                if not tile_l.isEmpty() and tile_l.color != piece.color:
+                let tileL = board[x - 1, y1]
+                if not tileL.isEmpty() and tileL.color != piece.color:
                     moves.add([x - 1, y1])
             if x < 7:
-                let tile_r = board[x + 1, y1]
-                if not tile_r.isEmpty() and tile_r.color != piece.color:
+                let tileR = board[x + 1, y1]
+                if not tileR.isEmpty() and tileR.color != piece.color:
                     moves.add([x + 1, y1])
         
         of 'N':
-            moves = notpawn_get_moves(board, x, y, piece.color, [-1, 1, 2, 2, 1, -1, -2, -2], [-2, -2, -1, 1, 2, 2, 1, -1], 8, 1)
+            moves = notPawnGetMoves(board, x, y, piece.color, [-1, 1, 2, 2, 1, -1, -2, -2], [-2, -2, -1, 1, 2, 2, 1, -1], 8, 1)
         of 'B':
-            moves = notpawn_get_moves(board, x, y, piece.color, [-1, -1, 1, 1], [-1, 1, -1, 1], 4, 7)
+            moves = notPawnGetMoves(board, x, y, piece.color, [-1, -1, 1, 1], [-1, 1, -1, 1], 4, 7)
         of 'R':
-            moves = notpawn_get_moves(board, x, y, piece.color, [-1, 1, 0, 0], [0, 0, -1, 1], 4, 7)
+            moves = notPawnGetMoves(board, x, y, piece.color, [-1, 1, 0, 0], [0, 0, -1, 1], 4, 7)
         of 'Q':
-            moves = notpawn_get_moves(board, x, y, piece.color, [-1, -1, 1, 1, -1, 1, 0, 0], [-1, 1, -1, 1, 0, 0, -1, 1], 8, 7)
+            moves = notPawnGetMoves(board, x, y, piece.color, [-1, -1, 1, 1, -1, 1, 0, 0], [-1, 1, -1, 1, 0, 0, -1, 1], 8, 7)
         of 'K':
-            moves = notpawn_get_moves(board, x, y, piece.color, [-1, -1, 1, 1, -1, 1, 0, 0], [-1, 1, -1, 1, 0, 0, -1, 1], 8, 1)
+            moves = notPawnGetMoves(board, x, y, piece.color, [-1, -1, 1, 1, -1, 1, 0, 0], [-1, 1, -1, 1, 0, 0, -1, 1], 8, 1)
         else:
             discard
+        
         piece.reach = moves.len
         return moves
 
-proc evaluate_piece(board: var Board, piece: var Piece, x: int, y: int): float = 
-    piece.reach = get_moves(board, piece, x, y).len
+proc evaluatePiece(board: var Board, piece: var Piece, x: int, y: int): float = 
+    piece.reach = getMoves(board, piece, x, y).len
     return piece.evaluate()
 
 proc evaluate*(board: var Board): float =
@@ -141,7 +142,7 @@ proc evaluate*(board: var Board): float =
         for y in 0 ..< board.height:
             var p: Piece = board[x, y]
             if not p.isEmpty():
-                result += evaluate_piece(board, p, x, y) #p.value;
+                result += evaluatePiece(board, p, x, y) #p.value;
 
 type
     Evaluation* = object
@@ -152,34 +153,34 @@ type
 method isEmpty*(evaluation: Evaluation): bool {.base.} =
     return evaluation.moveFrom == [0, 0] and evaluation.moveTo == [0, 0]
 
-proc evaluate_recursive*(board: var Board, depth: int, turn: bool): Evaluation =
+proc evaluateRecursive*(board: var Board, depth: int, turn: bool): Evaluation =
     for x in 0 ..< board.width:
         for y in 0 ..< board.height:
             var piece: Piece = board[x, y]
             
             if (not piece.isEmpty() and piece.color == turn):
-                var moves = get_moves(board, piece, x, y)
+                var moves = getMoves(board, piece, x, y)
                 
                 for move in moves:
-                    var tile_new = board[move[0], move[1]]
-                    if not tile_new.isEmpty():
-                        tile_new = tile_new.copy()
+                    var tileNew = board[move[0], move[1]]
+                    if not tileNew.isEmpty():
+                        tileNew = tileNew.copy()
 
-                    move_piece(board, [x, y], move)
+                    movePiece(board, [x, y], move)
 
-                    discard evaluate_piece(board, piece, move[0], move[1])
+                    discard evaluatePiece(board, piece, move[0], move[1])
                     
                     var evaluation: Evaluation
 
                     if depth > 1:
-                        evaluation = evaluate_recursive(board, depth - 1, not turn)
+                        evaluation = evaluateRecursive(board, depth - 1, not turn)
                         if evaluation.isEmpty():
                             evaluation = Evaluation(moveFrom: [x, y], moveTo: move, eval: evaluate(board))
                     else:
                         evaluation = Evaluation(moveFrom: [x, y], moveTo: move, eval: evaluate(board))
                     
                     board[x, y] = piece
-                    board[move[0], move[1]] = tile_new
+                    board[move[0], move[1]] = tileNew
 
                     if evaluation.isEmpty():
                         continue
