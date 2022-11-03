@@ -18,18 +18,24 @@ type
         reachFactor*: float
         moved*: bool
 
-var piece: Piece = Piece()
-piece.name = 'P'
-
 method toString*(piece: Piece): string {.base.} =
     return piece.name & $int(piece.color)
 
 method evaluate*(piece: var Piece): float {.base.} =
-    piece.value = (pieceValues.getOrDefault(piece.name) + float(piece.reach) * piece.reachFactor) * float((1 - 2 * int(piece.color)))
+    piece.value = float((1 - 2 * int(piece.color))) *
+        (pieceValues.getOrDefault(piece.name) + 
+        float(piece.reach) * piece.reachFactor)
     return piece.value
 
 method isEmpty*(piece: Piece): bool {.base.} =
     return piece.name == '\0'
 
-method copy*(p: Piece): Piece {.base.} =
-    return Piece(color: p.color, name: p.name, value: p.value, reach: p.reach, reachFactor: p.reachFactor, moved: p.moved)
+method copy*(piece: Piece): Piece {.base.} =
+    return Piece(
+        color:  piece.color,
+        name:   piece.name,
+        value:  piece.value,
+        reach:  piece.reach,
+        reachFactor: piece.reachFactor, 
+        moved:  piece.moved
+    )
