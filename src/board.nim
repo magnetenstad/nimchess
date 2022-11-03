@@ -1,8 +1,10 @@
 import piece
 import std/tables
+import std/sets
 import sequtils
 
 var evaluations: Table[string, float] = {"": 0.0}.toTable
+var positions: HashSet[string] = [""].toHashSet
 
 const icons = {
     "P0": "♟ ",
@@ -41,14 +43,14 @@ proc boardCreate*(): Board[8, 8, Piece] =
 
     for i in 0 .. 1:
         let color = bool(i)
-        board[2, i*7] = Piece(color: color, name: 'B', reachFactor: 0.08)
-        board[1, i*7] = Piece(color: color, name: 'N', reachFactor: 0.10)
-        board[3, i*7] = Piece(color: color, name: 'Q', reachFactor: 0.03)
-        board[0, i*7] = Piece(color: color, name: 'R', reachFactor: 0.08)
-        board[4, i*7] = Piece(color: color, name: 'K', reachFactor: 0.08)
-        board[5, i*7] = Piece(color: color, name: 'B', reachFactor: 0.08)
-        board[6, i*7] = Piece(color: color, name: 'N', reachFactor: 0.08)
-        board[7, i*7] = Piece(color: color, name: 'R', reachFactor: 0.08)
+        board[0, i*7] = Piece(color: color, name: 'R')
+        board[1, i*7] = Piece(color: color, name: 'N')
+        board[2, i*7] = Piece(color: color, name: 'B')
+        board[3, i*7] = Piece(color: color, name: 'Q')
+        board[4, i*7] = Piece(color: color, name: 'K')
+        board[5, i*7] = Piece(color: color, name: 'B')
+        board[6, i*7] = Piece(color: color, name: 'N')
+        board[7, i*7] = Piece(color: color, name: 'R')
 
         for j in 0 ..< 8:
             board[j, 1 + i*5] = Piece(color: color, name: 'P')
@@ -79,6 +81,8 @@ proc movePiece*(board: var Board, a: Pos, b: Pos) =
     board[b] = pieceA
     pieceB.name = '\0'
     board[a] = pieceB
+    if pieceA.name == 'P' and (b[1] == 0 or b[1] == 7):
+        pieceA.name = 'Q'
 
 proc notPawnGetMoves(board: Board, pos: Pos, color: bool, dx: array, dy: array, dlen: int, len: int): seq =
     var moves = newSeq[Pos]()
@@ -160,7 +164,9 @@ proc evaluatePiece(board: Board, pos: Pos): float =
 
 proc evaluate*(board: Board): float =
     let boardString = board.toString()
-    if (boardString) in evaluations:
+    if boardString in positions:
+        return 0
+    if boardString in evaluations:
         return evaluations[boardString]
     for x in 0 ..< board.width:
         for y in 0 ..< board.height:
@@ -195,13 +201,27 @@ proc evaluate*(board: var Board, depth: int, blackToMove: bool, a: float, b: flo
                 
                 let pieceCopy = piece.copy()
                 for move in moves:
-                    let otherPiece = board[move]
+                    let otherPiece: Piece = board[move]
                     let otherPieceCopy = otherPiece.copy()
 
                     movePiece(board, pos, move)
 
-                    let evaluation = Evaluation(moveFrom: pos, moveTo: move, eval: (
-                        evaluate(board, depth - 1, not blackToMove, a, b).eval
+                    if otherPiece.name == 'K':
+                        board[pos] = pieceCopy
+                        board[move] = otherPieceCopy
+
+                        return Evaluation(
+                            moveFrom: pos, moveTo: move,
+                            eval: (if blackToMove: -999999 else: 999999)
+                        )
+
+                    let evaluation = Evaluation(
+                        moveFrom: pos, moveTo: move, eval: (
+                        if board.toString() in positions:
+                            0.0
+                        else:
+                            evaluate(
+                                board, depth - 1, not blackToMove, a, b).eval
                     ))
                     
                     # move back
@@ -224,4 +244,9 @@ proc evaluate*(board: var Board, depth: int, blackToMove: bool, a: float, b: flo
 proc evaluate*(board: var Board, depth: int, blackToMove: bool): Evaluation =
     var a: float = -Inf
     var b: float = Inf
+    clear(evaluations)
+    let boardString = board.toString()
+    positions.incl(boardString)
+    if (boardString.count('K') < 2):
+        return Evaluation()
     evaluate(board, depth, blackToMove, a, b)

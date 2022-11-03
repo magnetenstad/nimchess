@@ -1,12 +1,21 @@
 import tables
 
-const pieceValues* = {
+const pieceValues = {
     'P': 1.0,
     'N': 3.0,
     'B': 3.0,
     'R': 5.0,
     'Q': 10.0,
-    'K': 999.0
+    'K': 9999.0
+}.toTable()
+
+const reachFactor = {
+    'P': 0.00,
+    'N': 0.10,
+    'B': 0.08,
+    'R': 0.08,
+    'Q': 0.03,
+    'K': 0.08
 }.toTable()
 
 type
@@ -15,7 +24,6 @@ type
         name*: char
         value*: float
         reach*: int
-        reachFactor*: float
         moved*: bool
 
 method toString*(piece: Piece): string {.base.} =
@@ -24,7 +32,7 @@ method toString*(piece: Piece): string {.base.} =
 method evaluate*(piece: var Piece): float {.base.} =
     piece.value = float((1 - 2 * int(piece.color))) *
         (pieceValues.getOrDefault(piece.name) + 
-        float(piece.reach) * piece.reachFactor)
+        float(piece.reach) * reachFactor[piece.name])
     return piece.value
 
 method isEmpty*(piece: Piece): bool {.base.} =
@@ -36,6 +44,5 @@ method copy*(piece: Piece): Piece {.base.} =
         name:   piece.name,
         value:  piece.value,
         reach:  piece.reach,
-        reachFactor: piece.reachFactor, 
         moved:  piece.moved
     )
