@@ -87,10 +87,8 @@ proc movePiece*(board: var Board, a: Pos, b: Pos) =
         pieceA.name = 'Q'
     if pieceA.name == 'K':
         if b[0] - a[0] > 1:
-            echo a, b
             movePiece(board, [board.width - 1, b[1]], [b[0] - 1, b[1]])
         if a[0] - b[0] > 1:
-            echo a, b
             movePiece(board, [0, b[1]], [b[0] + 1, b[1]])
     board[b] = pieceA
 
