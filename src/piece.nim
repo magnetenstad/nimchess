@@ -12,7 +12,7 @@ const pieceValues = {
 
 const reachFactor = {
     'P': 0.00,
-    'N': 0.10,
+    'N': 0.12,
     'B': 0.08,
     'R': 0.08,
     'Q': 0.03,
@@ -29,7 +29,7 @@ proc evaluate*(piece: var Piece, board: Board, pos: Pos): float =
     case piece.name
     
     of 'P':
-        piece.value += float(abs(pos[1] - (if piece.color: 6 else: 1))) * 0.05
+        piece.value += float(abs(pos[1] - (if piece.color: 6 else: 1))) * 0.1
     
     of 'K':
         for x in countup(max(pos[0] - 1, 0), min(pos[0] + 1, board.width - 1)):
@@ -37,7 +37,7 @@ proc evaluate*(piece: var Piece, board: Board, pos: Pos): float =
                 if x == y: continue
                 let other = board[x, y]
                 if not other.isEmpty and other.color == piece.color:
-                    piece.value += (if other.name == 'P': 0.2 else: 0.1)
+                    piece.value += (if other.name == 'P': 0.09 else: 0.08)
     else:
         discard
 
