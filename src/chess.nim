@@ -55,8 +55,6 @@ proc play*(): void =
                 movePiece(board, evaluation.moveFrom, evaluation.moveTo)
                 
                 let moveString = letters[evaluation.moveFrom[0]] & numbers[evaluation.moveFrom[1]] & letters[evaluation.moveTo[0]] & numbers[evaluation.moveTo[1]]
-                if not blackToMove:
-                    moveCount += 1
                 pgn &= moveString & " "
                 echo pgn
                 echo "Computer played:", moveString
