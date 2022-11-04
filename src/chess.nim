@@ -5,8 +5,8 @@ import strutils
 import times
 import std/os
 
-const minTurnSeconds = 1
-let depth = 5
+const minTurnSeconds = 0.2
+let depth = 2
 var pgn = ""
 const path = "C:/Users/tenst/Documents/GitHub/nimchess"
 

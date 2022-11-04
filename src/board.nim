@@ -2,6 +2,7 @@ import piece
 import std/tables
 import std/sets
 import sequtils
+import types
 
 var evaluations: Table[string, float] = {"": 0.0}.toTable
 var positions: HashSet[string] = [""].toHashSet
@@ -20,11 +21,6 @@ const icons = {
     "Q1": "♕ ",
     "K1": "♔ "
 }.toTable()
-
-type Pos = array[2, int]
-
-type Board*[width, height: static[int], T] = object
-    data*: array[width * height, T]
 
 proc `[]`*(board: Board, x, y: int): board.T {.inline.} =
     board.data[x * board.height + y]
@@ -78,11 +74,16 @@ proc movePiece*(board: var Board, a: Pos, b: Pos) =
     var pieceA: Piece = board[a]
     var pieceB: Piece = board[b]
     pieceA.moved = true
+    if pieceA.name == 'P' and (b[1] == 0 or b[1] == 7):
+        pieceA.name = 'Q'
+    if pieceA.name == 'K':
+        if b[0] - a[0] > 1:
+            movePiece(board, [board.width - 1, b[1]], [b[0] - 1, b[1]])
+        if a[0] - b[0] > 1:
+            movePiece(board, [0, b[1]], [b[0] + 1, b[1]])
     board[b] = pieceA
     pieceB.name = '\0'
     board[a] = pieceB
-    if pieceA.name == 'P' and (b[1] == 0 or b[1] == 7):
-        pieceA.name = 'Q'
 
 proc notPawnGetMoves(board: Board, pos: Pos, color: bool, dx: array, dy: array, dlen: int, len: int): seq =
     var moves = newSeq[Pos]()
@@ -105,12 +106,11 @@ proc notPawnGetMoves(board: Board, pos: Pos, color: bool, dx: array, dy: array, 
 proc getMoves*(board: Board, pos: Pos): seq =
     var moves = newSeq[Pos]()
     var piece: Piece = board[pos]
-    
+    let x = pos[0]
+    let y = pos[1]
+
     case piece.name
     of 'P':
-        let x = pos[0]
-        let y = pos[1]
-
         let y1 = y + 1 - 2 * int(piece.color)
 
         if y1 < 0 or 8 <= y1:
@@ -149,6 +149,26 @@ proc getMoves*(board: Board, pos: Pos): seq =
     of 'K':
         moves = notPawnGetMoves(board, pos, piece.color, 
             [-1, -1, 1, 1, -1, 1, 0, 0], [-1, 1, -1, 1, 0, 0, -1, 1], 8, 1)
+        let leftPiece = board[0, y]
+        let rightPiece = board[board.width - 1, y]
+
+        if not piece.moved and not leftPiece.moved:
+            var dx = 0
+            while board[x + dx, y] != leftPiece:
+                if not board[x + dx, y].isEmpty:
+                    break
+                dx -= 1
+            if board[x + dx, y] == leftPiece:
+                moves.add([x - 2, y])
+        
+        if not piece.moved and not rightPiece.moved:
+            var dx = 0
+            while board[x + dx, y] != rightPiece:
+                if not board[x + dx, y].isEmpty:
+                    break
+                dx += 1
+            if board[x + dx, y] == leftPiece:
+                moves.add([x + 2, y])
     else:
         discard
     
@@ -160,7 +180,7 @@ proc evaluatePiece(board: Board, pos: Pos): float =
     if piece.isEmpty():
         return 0
     piece.reach = getMoves(board, pos).len
-    return piece.evaluate()
+    return piece.evaluate(board, pos)
 
 proc evaluate*(board: Board): float =
     let boardString = board.toString()
