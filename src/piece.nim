@@ -14,9 +14,9 @@ const reachFactor = {
     'P': 0.00,
     'N': 0.12,
     'B': 0.08,
-    'R': 0.08,
-    'Q': 0.03,
-    'K': 0.08
+    'R': 0.06,
+    'Q': 0.02,
+    'K': 0.06
 }.toTable()
 
 method toString*(piece: Piece): string {.base.} =
@@ -29,7 +29,8 @@ proc evaluate*(piece: var Piece, board: Board, pos: Pos): float =
     case piece.name
     
     of 'P':
-        piece.value += float(abs(pos[1] - (if piece.color: 6 else: 1))) * 0.1
+        let factor = float(abs(pos[1] - (if piece.color: 6 else: 1)))
+        piece.value += factor * factor * 0.02
     
     of 'K':
         for x in countup(max(pos[0] - 1, 0), min(pos[0] + 1, board.width - 1)):
@@ -37,7 +38,7 @@ proc evaluate*(piece: var Piece, board: Board, pos: Pos): float =
                 if x == y: continue
                 let other = board[x, y]
                 if not other.isEmpty and other.color == piece.color:
-                    piece.value += (if other.name == 'P': 0.09 else: 0.08)
+                    piece.value += (if other.name == 'P': 0.08 else: 0.04)
     else:
         discard
 

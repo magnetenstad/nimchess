@@ -6,7 +6,7 @@ import times
 import std/os
 
 const minTurnSeconds = 1
-let depth = 4
+let depth = 5
 var pgn = ""
 const path = "C:/Users/tenst/Documents/GitHub/nimchess"
 
