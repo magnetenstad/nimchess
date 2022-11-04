@@ -6,7 +6,9 @@ import times
 import std/os
 
 const minTurnSeconds = 1
-let depth = 4
+let depth = 5
+var pgn = ""
+const path = "C:/Users/tenst/Documents/GitHub/nimchess"
 
 proc play*(): void =
     let letters = ["a", "b", "c", "d", "e", "f", "g", "h"]
@@ -51,11 +53,22 @@ proc play*(): void =
             echo evaluation
             if not evaluation.isEmpty():
                 movePiece(board, evaluation.moveFrom, evaluation.moveTo)
-                blackToMove = not blackToMove
-                echo "Computer played:", letters[evaluation.moveFrom[0]],  numbers[evaluation.moveFrom[1]], letters[evaluation.moveTo[0]],  numbers[evaluation.moveTo[1]]
+                
+                let moveString = letters[evaluation.moveFrom[0]] & numbers[evaluation.moveFrom[1]] & letters[evaluation.moveTo[0]] & numbers[evaluation.moveTo[1]]
+                if not blackToMove:
+                    moveCount += 1
+                pgn &= moveString & " "
+                echo pgn
+                echo "Computer played:", moveString
                 echo "Eval: ", evaluation.eval
             else:
                 echo "No legal moves."
+                
+                let f = open(path & "/output/" & getDateStr() & "_" & getClockStr().replace(':', '-') & ".an", fmWrite)
+                defer: f.close()
+                f.writeLine(pgn)
+
+                quit()
             
         else:
             if input[0] == "exit":
@@ -64,7 +77,6 @@ proc play*(): void =
             if not moves.contains(b):
                 echo "Not a legal move."
             movePiece(board, a, b)
-            blackToMove = not blackToMove
         echo "Current evaluation: ", evaluate(board), "\n"
 
         let dt = cpuTime() - t
@@ -72,3 +84,4 @@ proc play*(): void =
         echo draw(board)
         if dt < minTurnSeconds:
             sleep(int((minTurnSeconds - dt) * 1000))
+        blackToMove = not blackToMove
