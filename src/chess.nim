@@ -5,8 +5,8 @@ import strutils
 import times
 import std/os
 
-const minTurnSeconds = 0.2
-let depth = 2
+const minTurnSeconds = 1
+let depth = 4
 var pgn = ""
 const path = "C:/Users/tenst/Documents/GitHub/nimchess"
 
@@ -53,7 +53,6 @@ proc play*(): void =
             echo evaluation
             if not evaluation.isEmpty():
                 movePiece(board, evaluation.moveFrom, evaluation.moveTo)
-                
                 let moveString = letters[evaluation.moveFrom[0]] & numbers[evaluation.moveFrom[1]] & letters[evaluation.moveTo[0]] & numbers[evaluation.moveTo[1]]
                 pgn &= moveString & " "
                 echo pgn

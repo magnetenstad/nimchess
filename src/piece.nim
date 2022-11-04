@@ -36,7 +36,8 @@ proc evaluate*(piece: var Piece, board: Board, pos: Pos): float =
             for y in countup(max(pos[1] - 1, 0), min(pos[1] + 1, board.height - 1)):
                 if x == y: continue
                 let other = board[x, y]
-                piece.value += 0.05 * float(not other.isEmpty and other.color == piece.color)
+                if not other.isEmpty and other.color == piece.color:
+                    piece.value += (if other.name == 'P': 0.2 else: 0.1)
     else:
         discard
 

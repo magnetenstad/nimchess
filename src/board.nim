@@ -70,20 +70,29 @@ proc toString(board: Board): string =
         for y in 0 ..< board.height:
             result &= board[x, y].toString()
 
+proc swap(board: var Board, a: Pos, b: Pos) =
+    let pieceA: Piece = board[a]
+    let pieceB: Piece = board[b]
+    board[b] = pieceA
+    board[a] = pieceB
+
 proc movePiece*(board: var Board, a: Pos, b: Pos) = 
     var pieceA: Piece = board[a]
     var pieceB: Piece = board[b]
     pieceA.moved = true
+    pieceB.moved = true
+    pieceB.name = '\0'
+    board[a] = pieceB
     if pieceA.name == 'P' and (b[1] == 0 or b[1] == 7):
         pieceA.name = 'Q'
     if pieceA.name == 'K':
         if b[0] - a[0] > 1:
+            echo a, b
             movePiece(board, [board.width - 1, b[1]], [b[0] - 1, b[1]])
         if a[0] - b[0] > 1:
+            echo a, b
             movePiece(board, [0, b[1]], [b[0] + 1, b[1]])
     board[b] = pieceA
-    pieceB.name = '\0'
-    board[a] = pieceB
 
 proc notPawnGetMoves(board: Board, pos: Pos, color: bool, dx: array, dy: array, dlen: int, len: int): seq =
     var moves = newSeq[Pos]()
@@ -152,22 +161,22 @@ proc getMoves*(board: Board, pos: Pos): seq =
         let leftPiece = board[0, y]
         let rightPiece = board[board.width - 1, y]
 
-        if not piece.moved and not leftPiece.moved:
-            var dx = 0
-            while board[x + dx, y] != leftPiece:
+        if not piece.moved and leftPiece.name == 'R' and not leftPiece.moved:
+            var dx = -1
+            while x + dx > 0:
                 if not board[x + dx, y].isEmpty:
                     break
                 dx -= 1
-            if board[x + dx, y] == leftPiece:
+            if x + dx == 0:
                 moves.add([x - 2, y])
         
-        if not piece.moved and not rightPiece.moved:
-            var dx = 0
-            while board[x + dx, y] != rightPiece:
+        if not piece.moved and rightPiece.name == 'R' and not rightPiece.moved:
+            var dx = 1
+            while x + dx < board.width - 1:
                 if not board[x + dx, y].isEmpty:
                     break
                 dx += 1
-            if board[x + dx, y] == leftPiece:
+            if x + dx == board.width - 1:
                 moves.add([x + 2, y])
     else:
         discard
@@ -245,8 +254,13 @@ proc evaluate*(board: var Board, depth: int, blackToMove: bool, a: float, b: flo
                     ))
                     
                     # move back
+                    if piece.name == 'K':
+                        if move[0] - pos[0] > 1:
+                            swap(board, [move[0] - 1, move[1]], [board.width - 1, move[1]])
+                        if pos[0] - move[0] > 1:
+                            swap(board, [move[0] + 1, move[1]], [0, move[1]])
                     board[pos] = pieceCopy
-                    board[move] = otherPieceCopy
+                    board[move] = otherPiece
                     
                     if blackToMove:
                         if evaluation.eval < result.eval:
